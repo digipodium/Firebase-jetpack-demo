@@ -19,10 +19,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.firebase_demo.service.GoogleAuthUiClient
 import com.example.firebase_demo.ui.screens.sign_in.*
 import com.example.firebase_demo.ui.screens.home.HomeScreen
+import com.example.firebase_demo.ui.screens.home.HomeViewModel
+import com.example.firebase_demo.ui.screens.home.HomeViewModelFactory
 import kotlinx.coroutines.launch
 
 enum class Screen {
-    SignIn, Home
+    SignIn, Home, Add
 }
 
 @Composable
@@ -31,6 +33,10 @@ fun Navigation(
 ) {
     val navController = rememberNavController()
     val coroutineScope = rememberCoroutineScope()
+    val viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(context)
+    )
+    val state by viewModel.state.collectAsStateWithLifecycle()
     NavHost(navController = navController, startDestination = Screen.SignIn.name) {
         composable(Screen.SignIn.name) {
             val viewModel: SignInViewModel = viewModel()
@@ -38,6 +44,7 @@ fun Navigation(
             LaunchedEffect(key1 = Unit) {
                 if (authClient.getSignedInUser() != null) {
                     navController.navigate(Screen.Home.name)
+
                 }
             }
 
@@ -88,10 +95,9 @@ fun Navigation(
                 }
             })
         }
-        composable(
-            Screen.Home.name,
-        ) {
+        composable(Screen.Home.name,) {
             HomeScreen(
+                state = state,
                 userData = authClient.getSignedInUser(),
                 onSignOut = {
                     coroutineScope.launch {
@@ -105,6 +111,9 @@ fun Navigation(
                     }
                 }
             )
+        }
+        composable(Screen.Add.name){
+
         }
     }
 }
